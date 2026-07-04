@@ -36,9 +36,9 @@ export default function Services() {
             return (
               <Card
                 key={service.id}
-                variant="glass"
+                variant="sage-dark"
                 delay={index * 0.15}
-                className="flex flex-col h-full bg-sage-900 border border-sage-800 group overflow-hidden p-0 shadow-lg"
+                className="flex flex-col h-full group overflow-hidden p-0"
               >
                 {/* Service Image Header */}
                 <div className="relative h-48 w-full overflow-hidden img-zoom-container">

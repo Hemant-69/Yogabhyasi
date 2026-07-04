@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "glass-dark" | "outline";
+  variant?: "default" | "glass" | "glass-dark" | "outline" | "sage-dark";
   hoverEffect?: boolean;
   animate?: boolean;
   delay?: number;
@@ -28,6 +28,7 @@ export function Card({
     glass: "glass-card",
     "glass-dark": "glass-card-dark text-sand-50",
     outline: "border border-sage-200 bg-transparent",
+    "sage-dark": "bg-sage-950 border border-sage-900/50 text-sand-50 shadow-lg",
   };
 
   const hoverStyles = hoverEffect 
