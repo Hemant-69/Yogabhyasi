@@ -38,7 +38,7 @@ export default function Services() {
                 key={service.id}
                 variant="glass"
                 delay={index * 0.15}
-                className="flex flex-col h-full bg-sand-50/40 border border-slate-100/80 group overflow-hidden p-0"
+                className="flex flex-col h-full bg-sage-900 border border-sage-800 group overflow-hidden p-0 shadow-lg"
               >
                 {/* Service Image Header */}
                 <div className="relative h-48 w-full overflow-hidden img-zoom-container">
@@ -50,7 +50,7 @@ export default function Services() {
                     sizes="(max-w-768px) 100vw, (max-w-1024px) 50vw, 300px"
                   />
                   {/* Floating Icon */}
-                  <div className="absolute top-4 left-4 p-3 rounded-full bg-white/95 text-sage-600 shadow-md backdrop-blur-sm z-10">
+                  <div className="absolute top-4 left-4 p-3 rounded-full bg-sage-950/85 text-gold-400 shadow-md backdrop-blur-sm z-10 border border-white/5">
                     <IconComponent className="h-5 w-5" />
                   </div>
                 </div>
@@ -58,22 +58,22 @@ export default function Services() {
                 {/* Service Info Body */}
                 <div className="p-6 flex flex-col flex-grow justify-between gap-4">
                   <div className="flex flex-col gap-2">
-                    <h3 className="font-serif font-bold text-xl text-sage-950 group-hover:text-sage-800 transition-colors">
+                    <h3 className="font-serif font-bold text-xl text-sand-50 group-hover:text-gold-300 transition-colors">
                       {service.title}
                     </h3>
-                    <p className="text-xs md:text-sm text-sage-700 leading-relaxed font-light">
+                    <p className="text-xs md:text-sm text-sand-200/80 leading-relaxed font-light">
                       {service.description}
                     </p>
                   </div>
 
                   {/* Service Benefits List */}
-                  <div className="border-t border-sage-100 pt-4 mt-auto">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-sage-800 mb-2.5">
+                  <div className="border-t border-white/15 pt-4 mt-auto">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-gold-400 mb-2.5">
                       Key Benefits
                     </h4>
                     <ul className="flex flex-col gap-1.5">
                       {service.benefits.map((benefit, bIdx) => (
-                        <li key={bIdx} className="flex items-center gap-2 text-xs text-sage-600 font-light">
+                        <li key={bIdx} className="flex items-center gap-2 text-xs text-sand-200/90 font-light">
                           <Check className="h-3.5 w-3.5 text-gold-500 flex-shrink-0" />
                           <span>{benefit}</span>
                         </li>
