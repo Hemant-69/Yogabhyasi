@@ -94,7 +94,7 @@ export default function Hero() {
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0 },
               }}
-              className="flex flex-row gap-4 items-center w-full sm:w-auto"
+              className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto"
             >
               <Button
                 variant="gold"
@@ -102,7 +102,7 @@ export default function Hero() {
                 onClick={() => {
                   document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="group shrink-0"
+                className="group w-full md:w-auto justify-center"
               >
                 {primaryCTA.text}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -113,7 +113,7 @@ export default function Hero() {
                 onClick={() => {
                   document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="border-sand-200/40 text-sand-50 hover:bg-sand-200/10 shrink-0"
+                className="border-sand-200/40 text-sand-50 hover:bg-sand-200/10 w-full md:w-auto justify-center"
               >
                 {secondaryCTA.text}
               </Button>
