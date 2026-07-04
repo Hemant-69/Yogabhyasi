@@ -44,36 +44,36 @@ export default function Team() {
         <SectionHeading badge={badge} title={title} subtitle={subtitle} />
 
         {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8 max-w-7xl mx-auto">
           {items.map((member, index) => (
             <Card
               key={member.id}
               variant="glass"
               delay={index * 0.15}
-              className="flex flex-col items-center text-center p-8 bg-white/50 border border-sage-100 group"
+              className="flex flex-col items-center text-center p-4 sm:p-6 lg:p-8 bg-white/50 border border-sage-100 group"
             >
               {/* Photo Frame */}
-              <div className="relative h-44 w-44 rounded-full overflow-hidden border-4 border-white shadow-md mb-6 img-zoom-container flex-shrink-0">
+              <div className="relative h-28 w-28 sm:h-44 sm:w-44 rounded-full overflow-hidden border-4 border-white shadow-md mb-4 sm:mb-6 img-zoom-container flex-shrink-0">
                 <Image
                   src={member.photo}
                   alt={member.name}
                   fill
                   className="object-cover img-zoom-hover"
-                  sizes="176px"
+                  sizes="(max-w-640px) 112px, 176px"
                 />
               </div>
 
               {/* Name & Role */}
-              <h3 className="font-serif font-bold text-xl text-sage-950 mb-1 group-hover:text-sage-800 transition-colors">
+              <h3 className="font-serif font-bold text-base sm:text-xl text-sage-950 mb-1 group-hover:text-sage-800 transition-colors">
                 {member.name}
               </h3>
               
-              <span className="inline-block px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-sage-100 text-sage-700 border border-sage-200/50 mb-4">
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase bg-sage-100 text-sage-700 border border-sage-200/50 mb-2 sm:mb-4">
                 {member.role}
               </span>
 
               {/* Biography */}
-              <p className="text-xs md:text-sm text-sage-600 font-light leading-relaxed mb-0">
+              <p className="text-[11px] sm:text-xs md:text-sm text-sage-600 font-light leading-relaxed mb-0">
                 {member.bio}
               </p>
 
