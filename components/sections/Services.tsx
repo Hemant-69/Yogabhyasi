@@ -15,8 +15,23 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Sparkles: Sparkles,
 };
 
-export default function Services() {
-  const { badge, title, subtitle, items } = siteContent.services;
+interface ServiceItem {
+  id: string;
+  slug: string;
+  icon: string;
+  title: string;
+  description: string;
+  image: string;
+  benefits: string[] | any;
+}
+
+interface ServicesProps {
+  items?: ServiceItem[];
+}
+
+export default function Services({ items: customItems }: ServicesProps) {
+  const { badge, title, subtitle, items: staticItems } = siteContent.services;
+  const items = customItems && customItems.length > 0 ? customItems : staticItems;
 
   return (
     <section id="services" className="py-20 md:py-28 bg-white relative">
@@ -72,7 +87,7 @@ export default function Services() {
                       Key Benefits
                     </h4>
                     <ul className="flex flex-col gap-1.5">
-                      {service.benefits.map((benefit, bIdx) => (
+                      {service.benefits.map((benefit: any, bIdx: number) => (
                         <li key={bIdx} className="flex items-center gap-2 text-xs text-sand-200/90 font-light">
                           <Check className="h-3.5 w-3.5 text-gold-500 flex-shrink-0" />
                           <span>{benefit}</span>

@@ -123,9 +123,10 @@ body {
 /* Image zoom styling */
 .img-zoom-hover {
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: var(--img-transform, scale(1));
 }
 .img-zoom-container:hover .img-zoom-hover {
-  transform: scale(1.05);
+  transform: var(--img-transform-hover, scale(1.05));
 }
 
 /* Text selections */

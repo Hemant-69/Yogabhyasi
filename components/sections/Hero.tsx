@@ -7,10 +7,21 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { siteContent } from "@/lib/content";
 
-export default function Hero() {
+interface HeroProps {
+  siteSettings?: Record<string, string>;
+}
+
+export default function Hero({ siteSettings }: HeroProps) {
   const slides = siteContent.hero.slides;
   const primaryCTA = siteContent.hero.primaryCTA;
   const secondaryCTA = siteContent.hero.secondaryCTA;
+  const info = siteContent.contact.info;
+
+  const workingHours = {
+    weekdays: siteSettings?.hours_weekdays || info.workingHours.weekdays,
+    saturdays: siteSettings?.hours_saturdays || info.workingHours.saturdays,
+    sundays: siteSettings?.hours_sundays || info.workingHours.sundays,
+  };
 
   // Use values from content configuration
   const mainBadge = slides[0].badge;
@@ -118,6 +129,33 @@ export default function Hero() {
                 {secondaryCTA.text}
               </Button>
             </motion.div>
+
+            {/* Hours of Practice */}
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="mt-10 pt-6 border-t border-white/10 w-full max-w-sm text-[11px] text-sand-200/80 font-light space-y-2.5"
+            >
+              <div className="flex items-center gap-2 text-sand-100 font-medium">
+                <span className="uppercase tracking-wider font-semibold text-[9px]">Hours of Practice</span>
+              </div>
+              <div className="space-y-1.5 font-sans">
+                <div className="flex justify-between">
+                  <span>Mon - Fri</span>
+                  <span className="font-medium text-sand-50">{workingHours.weekdays}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Saturday</span>
+                  <span className="font-medium text-sand-50">{workingHours.saturdays}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sunday</span>
+                  <span className="font-medium text-sand-50">{workingHours.sundays}</span>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* Right Column: Montage - Expanded Sizing (Larger Column: 7/12 width) */}
@@ -129,11 +167,26 @@ export default function Hero() {
           >
             {/* Enlarged square aspect container */}
             <div className="relative w-full aspect-square max-w-[340px] sm:max-w-[460px] md:max-w-[500px] lg:max-w-[560px]">
-              
-              {/* 1. Big Main Image (Center - Portrait Aspect 3:4) */}
+
+              {/* 1. Big Main Image (Center - Portrait Aspect 3:4) — slow float up-down */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.4 }}
+                initial={{ opacity: 0, scale: 0.88, y: 30 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  y: [0, -14, 0],
+                }}
+                transition={{
+                  opacity: { duration: 0.7, delay: 0.3 },
+                  scale: { duration: 0.7, delay: 0.3 },
+                  y: {
+                    delay: 0.3,
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                whileHover={{ scale: 1.03 }}
                 className="absolute top-[10%] left-[20%] w-[60%] h-[80%] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-sage-950 z-10 cursor-pointer"
               >
                 <Image
@@ -146,10 +199,34 @@ export default function Hero() {
                 />
               </motion.div>
 
-              {/* 2. Small Image: Top-Left Corner (Overlaps big image) */}
+              {/* 2. Small Image: Top-Left Corner — offset float (faster, slight rotate) */}
               <motion.div
-                whileHover={{ scale: 1.06 }}
-                transition={{ duration: 0.4 }}
+                initial={{ opacity: 0, scale: 0.75, x: -20, y: -20 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 0,
+                  y: [0, -10, 0],
+                  rotate: [-1, 1, -1],
+                }}
+                transition={{
+                  opacity: { duration: 0.6, delay: 0.55 },
+                  scale: { duration: 0.6, delay: 0.55 },
+                  x: { duration: 0.6, delay: 0.55 },
+                  y: {
+                    delay: 0.55,
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                  rotate: {
+                    delay: 0.55,
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                whileHover={{ scale: 1.08 }}
                 className="absolute top-0 left-0 w-[32%] aspect-square rounded-2xl overflow-hidden shadow-xl border-4 border-sage-950 z-20 cursor-pointer"
               >
                 <Image
@@ -162,10 +239,34 @@ export default function Hero() {
                 />
               </motion.div>
 
-              {/* 3. Small Image: Bottom-Right Corner (Overlaps big image) */}
+              {/* 3. Small Image: Bottom-Right Corner — counter-phase float */}
               <motion.div
-                whileHover={{ scale: 1.06 }}
-                transition={{ duration: 0.4 }}
+                initial={{ opacity: 0, scale: 0.75, x: 20, y: 20 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 0,
+                  y: [0, 10, 0],
+                  rotate: [1, -1, 1],
+                }}
+                transition={{
+                  opacity: { duration: 0.6, delay: 0.75 },
+                  scale: { duration: 0.6, delay: 0.75 },
+                  x: { duration: 0.6, delay: 0.75 },
+                  y: {
+                    delay: 0.75,
+                    duration: 5.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                  rotate: {
+                    delay: 0.75,
+                    duration: 5.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                whileHover={{ scale: 1.08 }}
                 className="absolute bottom-0 right-0 w-[32%] aspect-square rounded-2xl overflow-hidden shadow-xl border-4 border-sage-950 z-20 cursor-pointer"
               >
                 <Image

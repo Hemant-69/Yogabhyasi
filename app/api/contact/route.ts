@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import * as z from "zod";
+import { prisma } from "@/lib/prisma";
+import { sendEmailNotification, sendTelegramNotification } from "@/lib/notifications";
 
 const contactFormSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   phone: z.string().min(10).max(15),
+  whatsapp: z.string().min(10).max(15),
   message: z.string().min(10),
 });
 
@@ -15,12 +18,26 @@ export async function POST(request: Request) {
     // Server-side Zod validation
     const parsedData = contactFormSchema.parse(body);
 
-    // In a real-world production site, this would send an email via Resend/SendGrid
-    // or insert records into a PostgreSQL/MongoDB database.
-    console.log("Secure Contact Submission received:", parsedData);
+    // Save submission to database
+    const savedMessage = await prisma.message.create({
+      data: {
+        name: parsedData.name,
+        email: parsedData.email,
+        phone: parsedData.phone,
+        whatsapp: parsedData.whatsapp || null,
+        message: parsedData.message,
+      },
+    });
 
-    // Simulate database delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Trigger dispatches asynchronously (graceful fallback if SMTP or Telegram bot token is not configured)
+    try {
+      await Promise.allSettled([
+        sendEmailNotification(savedMessage),
+        sendTelegramNotification(savedMessage),
+      ]);
+    } catch (err) {
+      console.error("Dispatches error:", err);
+    }
 
     return NextResponse.json(
       { success: true, message: "Thank you! Your message was received." },

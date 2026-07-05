@@ -34,8 +34,29 @@ function TwitterIcon({ className }: { className?: string }) {
 }
 
 
-export default function Team() {
-  const { badge, title, subtitle, items } = siteContent.team;
+interface TeamMemberItem {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
+  objectPosition?: string;
+  transform?: string | null;
+  transformHover?: string | null;
+  socials?: {
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+  } | any;
+}
+
+interface TeamProps {
+  items?: TeamMemberItem[];
+}
+
+export default function Team({ items: customItems }: TeamProps) {
+  const { badge, title, subtitle, items: staticItems } = siteContent.team;
+  const items = customItems && customItems.length > 0 ? customItems : staticItems;
 
   return (
     <section id="team" className="py-20 md:py-28 bg-sand-100 relative">
@@ -59,6 +80,11 @@ export default function Team() {
                   alt={member.name}
                   fill
                   className="object-cover img-zoom-hover"
+                  style={{
+                    objectPosition: member.objectPosition || "center",
+                    "--img-transform": member.transform || undefined,
+                    "--img-transform-hover": member.transformHover || undefined,
+                  } as React.CSSProperties}
                   sizes="(max-w-640px) 112px, 176px"
                 />
               </div>
@@ -68,9 +94,14 @@ export default function Team() {
                 {member.name}
               </h3>
               
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase bg-sage-100 text-sage-700 border border-sage-200/50 mb-2 sm:mb-4">
-                {member.role}
-              </span>
+              <div className="flex flex-wrap justify-center gap-1.5 mb-3 sm:mb-4">
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase bg-sage-100 text-sage-700 border border-sage-200/50">
+                  {member.role}
+                </span>
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase bg-gold-50 text-gold-700 border border-gold-200/50">
+                  10+ Years Exp
+                </span>
+              </div>
 
               {/* Biography */}
               <p className="text-[11px] sm:text-xs md:text-sm text-sage-600 font-light leading-relaxed mb-0">

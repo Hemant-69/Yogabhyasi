@@ -47,7 +47,8 @@ export const metadata: Metadata = {
     images: [SITE_METADATA.ogImage],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo/dark-logo-icon.png",
+    apple: "/logo/dark-logo-icon.png",
   },
 };
 
@@ -65,6 +66,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=SN+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet" />
+        {/* Theme-aware favicon: dark icon on light mode, light icon on dark mode */}
+        <link rel="icon" href="/logo/dark-logo-icon.png" type="image/png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" href="/logo/light-logo-icon.png" type="image/png" media="(prefers-color-scheme: dark)" />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-sand-100 text-sage-950">
         <Header />

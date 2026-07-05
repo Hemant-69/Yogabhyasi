@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -111,11 +112,16 @@ export function Header() {
           <a
             href="/#hero"
             onClick={(e) => handleNavClick(e, "/#hero")}
-            className={`font-serif font-bold text-xl md:text-2xl tracking-widest transition-colors ${
-              showScrolledNavbar ? "text-sage-950" : "text-white"
-            }`}
+            className="flex items-center"
           >
-            {siteContent.logoText}
+            <Image
+              src={showScrolledNavbar ? "/logo/dark horizontal logo.png" : "/logo/light horizontal logo.png"}
+              alt="Yogabhyasi Logo"
+              width={160}
+              height={44}
+              className="h-10 w-auto object-contain transition-all duration-300"
+              priority
+            />
           </a>
 
           {/* Desktop Navigation Links */}

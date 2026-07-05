@@ -131,6 +131,26 @@ export default function About() {
                   {paragraph}
                 </p>
               ))}
+
+              {/* Instagram Link */}
+              <a
+                href="https://www.instagram.com/yog.abhyasi_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 mt-1 group w-fit"
+                aria-label="Instagram"
+              >
+                <div className="flex items-center justify-center p-2 rounded-full border border-sage-200 bg-sage-50 text-sage-500 group-hover:text-gold-600 group-hover:border-gold-300 group-hover:bg-gold-50 transition-all group-hover:scale-105">
+                  <svg className="h-4 w-4 transition-transform group-hover:rotate-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-sage-500 group-hover:text-gold-600 transition-colors tracking-wide">
+                  @yog.abhyasi_
+                </span>
+              </a>
             </div>
 
             {/* Highlights Grid Slider on Mobile */}

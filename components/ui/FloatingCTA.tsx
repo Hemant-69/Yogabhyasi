@@ -16,6 +16,7 @@ const trialFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email" }),
   phone: z.string().min(10, { message: "Phone must be at least 10 digits" }),
+  whatsapp: z.string().min(10, { message: "WhatsApp must be at least 10 digits" }).max(15, { message: "WhatsApp must be less than 15 digits" }),
 });
 
 type TrialFormData = z.infer<typeof trialFormSchema>;
@@ -40,6 +41,7 @@ export function FloatingCTA() {
       name: "",
       email: "",
       phone: "",
+      whatsapp: "",
     },
   });
 
@@ -284,6 +286,27 @@ export function FloatingCTA() {
                 {errors.phone && (
                   <span className="text-[9px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
                     <AlertCircle className="h-3 w-3" /> {errors.phone.message}
+                  </span>
+                )}
+              </div>
+
+              {/* WhatsApp */}
+              <div className="flex flex-col gap-1">
+                <label htmlFor="modal-whatsapp" className="text-[10px] font-semibold text-sage-800 uppercase tracking-wider">
+                  WhatsApp Number
+                </label>
+                <input
+                  id="modal-whatsapp"
+                  type="text"
+                  placeholder="Enter WhatsApp number"
+                  {...register("whatsapp")}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-sans font-light bg-white focus:outline-none focus:ring-2 focus:ring-sage-500 ${
+                    errors.whatsapp ? "border-red-400 focus:ring-red-400" : "border-sage-100 focus:border-sage-300"
+                  }`}
+                />
+                {errors.whatsapp && (
+                  <span className="text-[9px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                    <AlertCircle className="h-3 w-3" /> {errors.whatsapp.message}
                   </span>
                 )}
               </div>

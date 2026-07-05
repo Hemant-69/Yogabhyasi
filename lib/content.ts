@@ -45,6 +45,9 @@ export interface TeamMember {
   role: string;
   bio: string;
   photo: string;
+  objectPosition?: string;
+  transform?: string;
+  transformHover?: string;
   socials: {
     instagram?: string;
     twitter?: string;
@@ -211,12 +214,12 @@ export const siteContent: SiteContent = {
     founderRole: "Founder & Spiritual Director",
     founderBio: [
       "Rohit Malik founded Yogabhyasi with a vision to build a serene space where traditional Hatha yoga practices blend seamlessly with modern anatomical insights.",
-      "With over 18 years of teaching experience across India and Southeast Asia, Rohit has mentored hundreds of yoga teachers and helped countless seekers restore physiological balance and emotional resilience.",
+      "With over 10 years of teaching experience across India, Rohit has mentored hundreds of yoga teachers and helped countless seekers restore physiological balance and emotional resilience.",
       "His classes emphasize the delicate orchestration of Prana (breath) and Asana (posture) as a vehicle for self-healing and transcendental peace."
     ],
     mission: "To guide seekers towards ultimate physical wellbeing, mental clarity, and spiritual elevation through authentic, accessible yogic disciplines.",
     vision: "To establish a global community of mindful practitioners who cultivate peace within themselves and radiate harmony to the world around them.",
-    image: "/images/4.webp",
+    image: "/Team member/Rohit Malik - Founder.webp",
     highlights: [
       {
         icon: "Heart",
@@ -452,7 +455,7 @@ export const siteContent: SiteContent = {
         name: "Rohit Malik",
         role: "Founder",
         bio: "Specializes in traditional Hatha, alignment-focused Vinyasa, and deep Pranayama.",
-        photo: "/images/4.webp",
+        photo: "/Team member/Rohit Malik - Founder.webp",
         socials: {
           instagram: "https://instagram.com",
           linkedin: "https://linkedin.com",
@@ -463,7 +466,7 @@ export const siteContent: SiteContent = {
         name: "Madhu Chaudhary",
         role: "Cofounder",
         bio: "Integrates clinical therapy with sacred acoustic frequencies and singing bowl practices.",
-        photo: "/images/5.webp",
+        photo: "/Team member/Madhu Chaudhary - Cofounder.webp",
         socials: {
           instagram: "https://instagram.com",
           twitter: "https://twitter.com",
@@ -474,7 +477,7 @@ export const siteContent: SiteContent = {
         name: "Anuj Chauhan",
         role: "Team Member",
         bio: "Passionate about athletic alignment, strength development, and dynamic flow sequencing.",
-        photo: "/images/6.webp",
+        photo: "/Team member/Anuj chauchan- team member .webp",
         socials: {
           linkedin: "https://linkedin.com",
           twitter: "https://twitter.com",
@@ -485,7 +488,10 @@ export const siteContent: SiteContent = {
         name: "Abhishek Sharma",
         role: "Team Member",
         bio: "Dedicated to restorative yoga, deep brainwave relaxation, and holistic health coaching.",
-        photo: "/images/14.webp",
+        photo: "/Team member/Abhishek sharma - team member.webp",
+        objectPosition: "center 35%",
+        transform: "scale(1.15) translateX(6%)",
+        transformHover: "scale(1.2) translateX(6%)",
         socials: {
           instagram: "https://instagram.com",
           linkedin: "https://linkedin.com",
