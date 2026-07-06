@@ -14,7 +14,8 @@ import {
   LogOut,
   Menu,
   X,
-  Compass
+  Compass,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,11 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       name: "Team Members",
       href: `/${adminPath}/team`,
       icon: Users,
+    },
+    {
+      name: "Legal Pages",
+      href: `/${adminPath}/legal-pages`,
+      icon: FileText,
     },
     {
       name: "Settings",

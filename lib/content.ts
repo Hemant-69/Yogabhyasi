@@ -571,9 +571,9 @@ export const siteContent: SiteContent = {
       { label: "Contact Us", href: "#contact" },
     ],
     legalLinks: [
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
-      { label: "Cookie Policy", href: "#" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Service", href: "/terms-of-service" },
+      { label: "Cookie Policy", href: "/cookie-policy" },
     ],
     copyright: "© 2026 Yogabhyasi Wellness Sanctuary. All rights reserved.",
   },

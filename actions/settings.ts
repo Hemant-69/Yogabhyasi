@@ -135,3 +135,31 @@ export async function updateSiteSettings(data: Record<string, string>) {
     return { success: false, error: error.message || "Failed to update site settings." };
   }
 }
+
+export async function updateLegalPages(data: {
+  legal_privacy_policy?: string;
+  legal_terms_of_service?: string;
+  legal_cookie_policy?: string;
+}) {
+  try {
+    const user = await checkAuth();
+
+    const entries = Object.entries(data).filter(([, value]) => value !== undefined && value !== null);
+
+    await prisma.$transaction(
+      entries.map(([key, value]) =>
+        prisma.siteSetting.upsert({
+          where: { key },
+          update: { value: value as string },
+          create: { key, value: value as string },
+        })
+      )
+    );
+
+    await logActivity("Update Legal Pages", user.email!, "Updated legal page content (Privacy Policy, Terms of Service, and/or Cookie Policy).");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Update legal pages error:", error);
+    return { success: false, error: error.message || "Failed to update legal page content." };
+  }
+}
