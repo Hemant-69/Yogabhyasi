@@ -94,9 +94,6 @@ async function main() {
       objectPosition: "center",
       transform: null,
       transformHover: null,
-      instagram: "https://instagram.com",
-      linkedin: "https://linkedin.com",
-      twitter: null,
       displayOrder: 0,
     },
     {
@@ -107,9 +104,6 @@ async function main() {
       objectPosition: "center",
       transform: null,
       transformHover: null,
-      instagram: "https://instagram.com",
-      linkedin: null,
-      twitter: "https://twitter.com",
       displayOrder: 1,
     },
     {
@@ -120,9 +114,6 @@ async function main() {
       objectPosition: "center",
       transform: null,
       transformHover: null,
-      instagram: null,
-      linkedin: "https://linkedin.com",
-      twitter: "https://twitter.com",
       displayOrder: 2,
     },
     {
@@ -133,9 +124,6 @@ async function main() {
       objectPosition: "center 35%",
       transform: "scale(1.15) translateX(6%)",
       transformHover: "scale(1.2) translateX(6%)",
-      instagram: "https://instagram.com",
-      linkedin: "https://linkedin.com",
-      twitter: null,
       displayOrder: 3,
     },
   ];
@@ -155,9 +143,6 @@ async function main() {
           objectPosition: member.objectPosition,
           transform: member.transform,
           transformHover: member.transformHover,
-          instagram: member.instagram,
-          linkedin: member.linkedin,
-          twitter: member.twitter,
           displayOrder: member.displayOrder,
         },
       });

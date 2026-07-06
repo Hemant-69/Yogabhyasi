@@ -83,6 +83,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => setIsOpen(false)}
               className={cn(
                 "flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 group relative overflow-hidden",
                 isActive

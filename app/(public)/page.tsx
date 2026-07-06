@@ -36,11 +36,6 @@ export default async function OnePageHome() {
       objectPosition: member.objectPosition,
       transform: member.transform,
       transformHover: member.transformHover,
-      socials: {
-        instagram: member.instagram || undefined,
-        twitter: member.twitter || undefined,
-        linkedin: member.linkedin || undefined,
-      },
     }));
 
     const rawSettings = await prisma.siteSetting.findMany();

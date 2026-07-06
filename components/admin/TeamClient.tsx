@@ -14,9 +14,11 @@ import {
   createTeamMember,
   updateTeamMember,
   deleteTeamMember,
-  toggleTeamMemberStatus
+  toggleTeamMemberStatus,
+  reorderTeam
 } from "@/actions/team";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   Plus,
   Edit2,
@@ -25,35 +27,12 @@ import {
   Loader2,
   Compass,
   Sparkles,
-  Info
+  Info,
+  GripVertical
 } from "lucide-react";
 import Image from "next/image";
 
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-    </svg>
-  );
-}
 
-function LinkedinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/>
-    </svg>
-  );
-}
-
-function TwitterIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    </svg>
-  );
-}
 
 interface TeamMember {
   id: string;
@@ -64,9 +43,6 @@ interface TeamMember {
   objectPosition: string;
   transform: string | null;
   transformHover: string | null;
-  instagram: string | null;
-  twitter: string | null;
-  linkedin: string | null;
   displayOrder: number;
   status: boolean;
 }
@@ -83,9 +59,6 @@ const teamMemberSchema = z.object({
   objectPosition: z.string(),
   transform: z.string().transform((v) => (v === "" ? null : v)).nullable().optional(),
   transformHover: z.string().transform((v) => (v === "" ? null : v)).nullable().optional(),
-  instagram: z.string().url("Invalid Instagram URL").or(z.literal("")).nullable().optional(),
-  twitter: z.string().url("Invalid Twitter URL").or(z.literal("")).nullable().optional(),
-  linkedin: z.string().url("Invalid LinkedIn URL").or(z.literal("")).nullable().optional(),
   displayOrder: z.number(),
   status: z.boolean(),
 });
@@ -110,6 +83,62 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Reordering States
+  const [isReorderOpen, setIsReorderOpen] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [tempList, setTempList] = useState<TeamMember[]>([]);
+
+  const handleOpenReorder = () => {
+    const sorted = [...members].sort((a, b) => a.displayOrder - b.displayOrder);
+    setTempList(sorted);
+    setIsReorderOpen(true);
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const listCopy = [...tempList];
+    const itemToMove = listCopy[draggedIndex];
+    listCopy.splice(draggedIndex, 1);
+    listCopy.splice(index, 0, itemToMove);
+
+    setDraggedIndex(index);
+    setTempList(listCopy);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      const orderedIds = tempList.map((m) => m.id);
+      const result = await reorderTeam(orderedIds);
+      if (result.success) {
+        toast.success("Team order saved successfully.");
+        setMembers(
+          tempList.map((item, idx) => ({ ...item, displayOrder: idx }))
+        );
+        setIsReorderOpen(false);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to save team order.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while saving display order.");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
   const {
     register,
     handleSubmit,
@@ -127,9 +156,6 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
       objectPosition: "center",
       transform: "",
       transformHover: "",
-      instagram: "",
-      twitter: "",
-      linkedin: "",
       displayOrder: 0,
       status: true,
     },
@@ -155,9 +181,6 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
       objectPosition: "center",
       transform: "",
       transformHover: "",
-      instagram: "",
-      twitter: "",
-      linkedin: "",
       displayOrder: members.length,
       status: true,
     });
@@ -174,9 +197,6 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
       objectPosition: member.objectPosition,
       transform: member.transform || "",
       transformHover: member.transformHover || "",
-      instagram: member.instagram || "",
-      twitter: member.twitter || "",
-      linkedin: member.linkedin || "",
       displayOrder: member.displayOrder,
       status: member.status,
     });
@@ -278,6 +298,7 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
       header: "Order",
       accessorKey: "displayOrder",
       sortable: true,
+      className: "hidden sm:table-cell",
       cell: (row) => <span className="font-light text-sage-500">#{row.displayOrder}</span>,
     },
     {
@@ -299,6 +320,7 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
     {
       header: "Positioning Offset",
       accessorKey: "objectPosition",
+      className: "hidden md:table-cell",
       cell: (row) => (
         <span className="text-xs font-mono bg-sage-50 px-2 py-1 rounded text-sage-700 border border-sage-100">
           {row.objectPosition}
@@ -361,10 +383,16 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
             Manage your certified teachers, cofounders, profile photos, bios, social URLs, and display order.
           </p>
         </div>
-        <Button variant="primary" onClick={handleAddClick} className="rounded-xl flex items-center gap-2 self-start sm:self-auto py-2.5">
-          <Plus className="h-5 w-5" />
-          <span>Add Member</span>
-        </Button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <Button variant="outline" onClick={handleOpenReorder} className="rounded-xl flex items-center gap-2 py-2.5">
+            <GripVertical className="h-4 w-4 text-sage-500" />
+            <span>Reorder</span>
+          </Button>
+          <Button variant="primary" onClick={handleAddClick} className="rounded-xl flex items-center gap-2 py-2.5">
+            <Plus className="h-5 w-5" />
+            <span>Add Member</span>
+          </Button>
+        </div>
       </div>
 
       {/* Team Table */}
@@ -479,39 +507,7 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
                 )}
               </div>
 
-              {/* Social Links */}
-              <div className="space-y-3 p-4 rounded-xl border border-sage-100 bg-sage-50/50">
-                <span className="text-[10px] font-bold text-sage-500 uppercase tracking-wider block">Social Media Links</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-sage-600 block">Instagram</label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      {...register("instagram")}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-sage-200 bg-white text-sage-950 focus:outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-sage-600 block">Twitter / X</label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      {...register("twitter")}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-sage-200 bg-white text-sage-950 focus:outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-sage-600 block">LinkedIn</label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      {...register("linkedin")}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-sage-200 bg-white text-sage-950 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
+
 
               {/* Photo Upload */}
               <div className="space-y-1.5">
@@ -618,14 +614,7 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
                   {watchAll.bio || "Provide a biography detailing their lineage, experience, and certifications..."}
                 </p>
 
-                {/* Social icons */}
-                {(watchAll.instagram || watchAll.twitter || watchAll.linkedin) && (
-                  <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-sage-50 w-full text-sage-400">
-                    {watchAll.instagram && <InstagramIcon className="h-4 w-4" />}
-                    {watchAll.twitter && <TwitterIcon className="h-4 w-4" />}
-                    {watchAll.linkedin && <LinkedinIcon className="h-4 w-4" />}
-                  </div>
-                )}
+
               </Card>
 
               <div className="flex items-start gap-2 mt-6 p-4 bg-gold-50 border border-gold-100 rounded-2xl text-[10px] text-gold-700 leading-normal max-w-[280px]">
@@ -650,6 +639,75 @@ export default function TeamClient({ initialMembers }: TeamClientProps) {
         title="Remove Guide"
         description="Are you sure you want to remove this teacher from the team? They will immediately disappear from the homepage."
       />
+
+      {/* Reorder Modal */}
+      <Modal isOpen={isReorderOpen} onClose={() => setIsReorderOpen(false)} size="sm">
+        <div className="space-y-5">
+          <div>
+            <h3 className="font-serif font-bold text-xl text-sage-950">Reorder Guides</h3>
+            <p className="text-xs text-sage-500 font-light mt-1">
+              Drag and drop teachers to rearrange their display order on the website.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+            {tempList.map((member, idx) => (
+              <div
+                key={member.id}
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  "flex items-center gap-3.5 p-2 bg-white border border-sage-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing select-none transition-all duration-200",
+                  draggedIndex === idx && "opacity-40 scale-[1.01] border-gold-400 bg-sand-50/50 shadow-md"
+                )}
+              >
+                <GripVertical className="h-4.5 w-4.5 text-sage-400 shrink-0" />
+                <div className="relative h-10 w-10 rounded-full overflow-hidden border border-sage-150 shrink-0 bg-sage-50">
+                  <Image
+                    src={member.photo}
+                    alt={member.name}
+                    fill
+                    className="object-cover"
+                    sizes="40px"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-sage-950 truncate">{member.name}</p>
+                  <p className="text-[10px] text-sage-400 truncate">{member.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsReorderOpen(false)}
+              disabled={isSavingOrder}
+              className="flex-1 rounded-xl py-2.5"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="flex-1 rounded-xl py-2.5 flex items-center justify-center gap-2"
+            >
+              {isSavingOrder ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <span>Save Order</span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

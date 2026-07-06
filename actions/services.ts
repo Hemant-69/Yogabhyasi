@@ -136,3 +136,26 @@ export async function toggleServiceStatus(id: string, currentStatus: boolean) {
     return { success: false, error: error.message || "Failed to toggle service status." };
   }
 }
+
+export async function reorderServices(orderedIds: string[]) {
+  try {
+    const user = await checkAuth();
+
+    // Perform database updates in a transaction
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.service.update({
+          where: { id },
+          data: { displayOrder: index },
+        })
+      )
+    );
+
+    await logActivity("Reorder Services", user.email!, "Reordered services display listing.");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Reorder services error:", error);
+    return { success: false, error: error.message || "Failed to reorder services." };
+  }
+}

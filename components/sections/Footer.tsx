@@ -12,6 +12,23 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21l1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z" />
+    </svg>
+  );
+}
+
 interface FooterProps {
   siteSettings?: Record<string, string>;
 }
@@ -46,23 +63,58 @@ export default function Footer({ siteSettings }: FooterProps) {
             </p>
           </div>
 
-          {/* Right: Instagram Icon + handle */}
-          <div className="flex flex-col items-start md:items-end gap-1.5">
-            <span className="text-[9px] uppercase tracking-widest text-sand-200/30 font-semibold">Follow Us</span>
-            <a
-              href="https://www.instagram.com/yog.abhyasi_"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 group"
-              aria-label="Instagram"
-            >
-              <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 text-sand-200/70 group-hover:text-gold-400 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all group-hover:scale-105">
-                <InstagramIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-6" />
-              </div>
-              <span className="text-[11px] font-light text-sand-200/50 group-hover:text-gold-400 transition-colors tracking-wide">
-                @yog.abhyasi_
-              </span>
-            </a>
+          {/* Right: Connect with Us Icons with Names */}
+          <div className="flex flex-col items-start md:items-end gap-2.5">
+            <span className="text-[9px] uppercase tracking-widest text-sand-200/30 font-semibold">Connect with Us</span>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 md:justify-end">
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/yog.abhyasi_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 group"
+                aria-label="Instagram"
+              >
+                <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 text-sand-200/70 group-hover:text-gold-400 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all group-hover:scale-105">
+                  <InstagramIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-6" />
+                </div>
+                <span className="text-[11px] font-light text-sand-200/50 group-hover:text-gold-400 transition-colors tracking-wide">
+                  Instagram
+                </span>
+              </a>
+
+              {/* Telegram */}
+              <a
+                href="https://t.me/yogabhyasi12"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 group"
+                aria-label="Telegram"
+              >
+                <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 text-sand-200/70 group-hover:text-gold-400 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all group-hover:scale-105">
+                  <TelegramIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-6" />
+                </div>
+                <span className="text-[11px] font-light text-sand-200/50 group-hover:text-gold-400 transition-colors tracking-wide">
+                  Telegram
+                </span>
+              </a>
+
+              {/* WhatsApp */}
+              <a
+                href="https://wa.me/919717996507"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 group"
+                aria-label="WhatsApp"
+              >
+                <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 text-sand-200/70 group-hover:text-gold-400 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all group-hover:scale-105">
+                  <WhatsAppIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-6" />
+                </div>
+                <span className="text-[11px] font-light text-sand-200/50 group-hover:text-gold-400 transition-colors tracking-wide">
+                  WhatsApp
+                </span>
+              </a>
+            </div>
           </div>
 
         </div>

@@ -7,6 +7,33 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { siteContent } from "@/lib/content";
 
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+  );
+}
+
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21l1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z" />
+    </svg>
+  );
+}
+
 interface HeroProps {
   siteSettings?: Record<string, string>;
 }
@@ -105,7 +132,7 @@ export default function Hero({ siteSettings }: HeroProps) {
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0 },
               }}
-              className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto"
+              className="flex flex-row gap-2.5 items-center w-full sm:w-auto"
             >
               <Button
                 variant="gold"
@@ -113,10 +140,10 @@ export default function Hero({ siteSettings }: HeroProps) {
                 onClick={() => {
                   document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="group w-full md:w-auto justify-center"
+                className="group flex-1 sm:flex-none w-full sm:w-auto justify-center text-[11px] xs:text-xs sm:text-sm px-2.5 sm:px-6 py-3"
               >
                 {primaryCTA.text}
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-1 flex-shrink-0" />
               </Button>
               <Button
                 variant="outline"
@@ -124,7 +151,7 @@ export default function Hero({ siteSettings }: HeroProps) {
                 onClick={() => {
                   document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="border-sand-200/40 text-sand-50 hover:bg-sand-200/10 w-full md:w-auto justify-center"
+                className="border-sand-200/40 text-sand-50 hover:bg-sand-200/10 flex-1 sm:flex-none w-full sm:w-auto justify-center text-[11px] xs:text-xs sm:text-sm px-2.5 sm:px-6 py-3"
               >
                 {secondaryCTA.text}
               </Button>
@@ -155,6 +182,57 @@ export default function Hero({ siteSettings }: HeroProps) {
                   <span className="font-medium text-sand-50">{workingHours.sundays}</span>
                 </div>
               </div>
+            </motion.div>
+
+            {/* Social Media Icons */}
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-8 pt-6 border-t border-white/10 w-full max-w-sm"
+            >
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/yog.abhyasi_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs text-sand-200/70 hover:text-gold-400 transition-colors group"
+                aria-label="Instagram"
+              >
+                <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all">
+                  <InstagramIcon className="h-3.5 w-3.5" />
+                </div>
+                <span>Instagram</span>
+              </a>
+
+              {/* Telegram */}
+              <a
+                href="https://t.me/yogabhyasi12"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs text-sand-200/70 hover:text-gold-400 transition-colors group"
+                aria-label="Telegram"
+              >
+                <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all">
+                  <TelegramIcon className="h-3.5 w-3.5" />
+                </div>
+                <span>Telegram</span>
+              </a>
+
+              {/* WhatsApp */}
+              <a
+                href="https://wa.me/919717996507"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs text-sand-200/70 hover:text-gold-400 transition-colors group"
+                aria-label="WhatsApp"
+              >
+                <div className="flex items-center justify-center p-1.5 rounded-full border border-white/10 bg-white/5 group-hover:border-gold-400/30 group-hover:bg-gold-500/5 transition-all">
+                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                </div>
+                <span>WhatsApp</span>
+              </a>
             </motion.div>
           </motion.div>
 

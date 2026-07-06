@@ -13,9 +13,11 @@ import {
   createService,
   updateService,
   deleteService,
-  toggleServiceStatus
+  toggleServiceStatus,
+  reorderServices
 } from "@/actions/services";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   Plus,
   Edit2,
@@ -30,7 +32,8 @@ import {
   Heart,
   Smile,
   Zap,
-  Info
+  Info,
+  GripVertical
 } from "lucide-react";
 import Image from "next/image";
 
@@ -89,6 +92,62 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reordering States
+  const [isReorderOpen, setIsReorderOpen] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [tempList, setTempList] = useState<Service[]>([]);
+
+  const handleOpenReorder = () => {
+    const sorted = [...services].sort((a, b) => a.displayOrder - b.displayOrder);
+    setTempList(sorted);
+    setIsReorderOpen(true);
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const listCopy = [...tempList];
+    const itemToMove = listCopy[draggedIndex];
+    listCopy.splice(draggedIndex, 1);
+    listCopy.splice(index, 0, itemToMove);
+
+    setDraggedIndex(index);
+    setTempList(listCopy);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      const orderedIds = tempList.map((s) => s.id);
+      const result = await reorderServices(orderedIds);
+      if (result.success) {
+        toast.success("Services order saved successfully.");
+        setServices(
+          tempList.map((item, idx) => ({ ...item, displayOrder: idx }))
+        );
+        setIsReorderOpen(false);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to save services order.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while saving display order.");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
 
   const {
     register,
@@ -292,6 +351,7 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
       header: "Order",
       accessorKey: "displayOrder",
       sortable: true,
+      className: "hidden sm:table-cell",
       cell: (row) => <span className="font-light text-sage-500">#{row.displayOrder}</span>,
     },
     {
@@ -313,6 +373,7 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
     {
       header: "Icon",
       accessorKey: "icon",
+      className: "hidden md:table-cell",
       cell: (row) => (
         <div className="p-2 rounded-lg bg-sage-50 text-sage-600 border border-sage-100 inline-block">
           {getIconComponent(row.icon)}
@@ -375,10 +436,16 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
             Manage your signature programs, curriculum listings, icons, descriptions, and dynamic page content.
           </p>
         </div>
-        <Button variant="primary" onClick={handleAddClick} className="rounded-xl flex items-center gap-2 self-start sm:self-auto py-2.5">
-          <Plus className="h-5 w-5" />
-          <span>Add Service</span>
-        </Button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <Button variant="outline" onClick={handleOpenReorder} className="rounded-xl flex items-center gap-2 py-2.5">
+            <GripVertical className="h-4 w-4 text-sage-500" />
+            <span>Reorder</span>
+          </Button>
+          <Button variant="primary" onClick={handleAddClick} className="rounded-xl flex items-center gap-2 py-2.5">
+            <Plus className="h-4 w-4" />
+            <span>Add Service</span>
+          </Button>
+        </div>
       </div>
 
       {/* Services Table */}
@@ -622,6 +689,69 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
         title="Delete Service"
         description="Are you sure you want to delete this service? All details will be permanently removed from the website."
       />
+
+      {/* Reorder Modal */}
+      <Modal isOpen={isReorderOpen} onClose={() => setIsReorderOpen(false)} size="sm">
+        <div className="space-y-5">
+          <div>
+            <h3 className="font-serif font-bold text-xl text-sage-950">Reorder Services</h3>
+            <p className="text-xs text-sage-500 font-light mt-1">
+              Drag and drop services to rearrange their display order on the website.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+            {tempList.map((service, idx) => (
+              <div
+                key={service.id}
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  "flex items-center gap-3.5 p-3.5 bg-white border border-sage-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing select-none transition-all duration-200",
+                  draggedIndex === idx && "opacity-40 scale-[1.01] border-gold-400 bg-sand-50/50 shadow-md"
+                )}
+              >
+                <GripVertical className="h-4.5 w-4.5 text-sage-400 shrink-0" />
+                <div className="p-1.5 rounded-lg bg-sage-50 text-sage-600 border border-sage-100 shrink-0">
+                  {getIconComponent(service.icon)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-sage-950 truncate">{service.title}</p>
+                  <p className="text-[10px] text-sage-400 truncate">/{service.slug}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsReorderOpen(false)}
+              disabled={isSavingOrder}
+              className="flex-1 rounded-xl py-2.5"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="flex-1 rounded-xl py-2.5 flex items-center justify-center gap-2"
+            >
+              {isSavingOrder ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <span>Save Order</span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

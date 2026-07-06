@@ -9,6 +9,7 @@ export interface Column<T> {
   accessorKey: keyof T | string;
   cell?: (row: T) => React.ReactNode;
   sortable?: boolean;
+  className?: string;
 }
 
 interface DataTableProps<T> {
@@ -167,7 +168,8 @@ export default function DataTable<T extends { id: string }>({
                   onClick={() => handleSort(column.accessorKey, column.sortable)}
                   className={cn(
                     "py-4 px-6 select-none",
-                    column.sortable && "cursor-pointer hover:bg-sage-100/50 transition-colors"
+                    column.sortable && "cursor-pointer hover:bg-sage-100/50 transition-colors",
+                    column.className
                   )}
                 >
                   <div className="flex items-center gap-1.5">
@@ -233,7 +235,13 @@ export default function DataTable<T extends { id: string }>({
                   {columns.map((column, cIdx) => {
                     const cellVal = (row as any)[column.accessorKey];
                     return (
-                      <td key={cIdx} className="py-4 px-6 text-sage-900 font-medium">
+                      <td
+                        key={cIdx}
+                        className={cn(
+                          "py-4 px-6 text-sage-900 font-medium",
+                          column.className
+                        )}
+                      >
                         {column.cell ? column.cell(row) : String(cellVal ?? "")}
                       </td>
                     );

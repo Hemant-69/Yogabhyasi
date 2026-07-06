@@ -7,6 +7,11 @@ export const dynamic = "force-dynamic";
 export default async function MessagesPage() {
   // Fetch messages from database
   const messages = await prisma.message.findMany({
+    include: {
+      actions: {
+        orderBy: { createdAt: "desc" }
+      }
+    },
     orderBy: { createdAt: "desc" },
   });
 

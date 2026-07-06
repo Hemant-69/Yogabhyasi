@@ -160,9 +160,23 @@ export function Header() {
           </nav>
 
           {/* Action Call Button */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:flex items-center gap-3">
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination=28.426212,77.06642"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                variant="gold"
+                size="sm"
+                className="shadow-md shadow-gold-950/20"
+              >
+                Get Directions
+              </Button>
+            </a>
+            
             <Button
-              variant={showScrolledNavbar ? "primary" : "outline"}
+              variant={showScrolledNavbar ? "outline" : "outline"}
               size="sm"
               onClick={() => {
                 const element = document.getElementById("contact");
@@ -179,7 +193,7 @@ export function Header() {
               className={
                 !showScrolledNavbar
                   ? "border-sand-200/40 text-white hover:bg-white/10"
-                  : ""
+                  : "border-sage-200 text-sage-700 hover:bg-sage-50"
               }
             >
               <span>Book Trial</span>
@@ -230,26 +244,43 @@ export function Header() {
               })}
             </nav>
 
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                const element = document.getElementById("contact");
-                if (element) {
-                  window.scrollTo({
-                    top: element.offsetTop - 80,
-                    behavior: "smooth",
-                  });
-                } else {
-                  window.location.href = "/#contact";
-                }
-              }}
-              className="w-full mt-2"
-            >
-              <span>Book Trial</span>
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Button>
+            <div className="flex flex-col gap-3 mt-2">
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=28.426212,77.06642"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
+              >
+                <Button
+                  variant="gold"
+                  size="md"
+                  className="w-full justify-center shadow-md shadow-gold-950/20"
+                >
+                  Get Directions
+                </Button>
+              </a>
+
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  const element = document.getElementById("contact");
+                  if (element) {
+                    window.scrollTo({
+                      top: element.offsetTop - 80,
+                      behavior: "smooth",
+                    });
+                  } else {
+                    window.location.href = "/#contact";
+                  }
+                }}
+                className="w-full justify-center border-sage-200 text-sage-700 hover:bg-sage-50"
+              >
+                <span>Book Trial</span>
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -31,10 +31,22 @@ import { toast } from "sonner";
 import {
   markMessageAsRead,
   deleteMessage,
-  bulkDeleteMessages
+  bulkDeleteMessages,
+  sendClientReplyEmail,
+  toggleMessageReplied,
+  recordWhatsAppClick,
+  getAllMessages
 } from "@/actions/messages";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+interface MessageAction {
+  id: string;
+  type: string;
+  details?: string | null;
+  adminEmail: string;
+  createdAt: Date | string;
+}
 
 interface Message {
   id: string;
@@ -44,7 +56,10 @@ interface Message {
   whatsapp?: string | null;
   message: string;
   read: boolean;
+  replied: boolean;
+  replyMethod?: string | null;
   createdAt: Date;
+  actions?: MessageAction[];
 }
 
 interface MessagesClientProps {
@@ -54,11 +69,23 @@ interface MessagesClientProps {
 export default function MessagesClient({ initialMessages }: MessagesClientProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [activeTab, setActiveTab] = useState<"pending" | "resolved">("pending");
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("");
   const [bookingNotes, setBookingNotes] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Deletion States
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [bulkDeleteTargets, setBulkDeleteTargets] = useState<string[] | null>(null);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  
+  const isDateTimeProvided = !!bookingDate && !!bookingTime;
 
   useEffect(() => {
     if (selectedMessage) {
@@ -84,13 +111,143 @@ export default function MessagesClient({ initialMessages }: MessagesClientProps)
     }
   }, [selectedMessage, bookingDate, bookingTime]);
 
-  // Deletion States
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [bulkDeleteTargets, setBulkDeleteTargets] = useState<string[] | null>(null);
-  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  // Background Poll for new messages every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      // Skip polling if the window tab is hidden or action is processing
+      if (document.hidden || isSendingEmail || isLoading) return;
 
-  const [isLoading, setIsLoading] = useState(false);
+      try {
+        const result = await getAllMessages();
+        if (result.success && result.messages) {
+          setMessages((prev) => {
+            const hasChanged = JSON.stringify(prev) !== JSON.stringify(result.messages);
+            if (hasChanged) {
+              // Update selectedMessage reference to keep detail modal timeline synced
+              if (selectedMessage) {
+                const updatedSel = result.messages.find((m: any) => m.id === selectedMessage.id);
+                if (updatedSel) {
+                  setSelectedMessage(updatedSel);
+                }
+              }
+              return result.messages as any[];
+            }
+            return prev;
+          });
+        }
+      } catch (error) {
+        console.error("Failed to poll messages:", error);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [selectedMessage, isSendingEmail, isLoading]);
+
+  const updateLocalStatus = (
+    isReplied: boolean,
+    replyMethod: string | null,
+    newAction?: MessageAction
+  ) => {
+    if (!selectedMessage) return;
+    setMessages((prev) =>
+      prev.map((m) => {
+        if (m.id !== selectedMessage.id) return m;
+        const currentActions = m.actions || [];
+        const updatedActions = newAction 
+          ? [newAction, ...currentActions] 
+          : currentActions;
+        return {
+          ...m,
+          replied: isReplied,
+          replyMethod,
+          read: true,
+          actions: updatedActions,
+        };
+      })
+    );
+    setSelectedMessage((prev) => {
+      if (!prev) return null;
+      const currentActions = prev.actions || [];
+      const updatedActions = newAction 
+        ? [newAction, ...currentActions] 
+        : currentActions;
+      return {
+        ...prev,
+        replied: isReplied,
+        replyMethod,
+        read: true,
+        actions: updatedActions,
+      };
+    });
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedMessage) return;
+    setIsSendingEmail(true);
+    try {
+      const result = await sendClientReplyEmail(
+        selectedMessage.id,
+        selectedMessage.email,
+        selectedMessage.name,
+        "Booking Confirmation - Yogabhyasi",
+        bookingNotes
+      );
+
+      if (result.success) {
+        toast.success(`Email sent successfully to ${selectedMessage.name}!`);
+        
+        // Auto-mark as read locally and in DB
+        if (!selectedMessage.read) {
+          await markMessageAsRead(selectedMessage.id, true);
+        }
+
+        const mockAction: MessageAction = {
+          id: Math.random().toString(),
+          type: "EMAIL",
+          details: bookingNotes,
+          adminEmail: "You",
+          createdAt: new Date(),
+        };
+
+        updateLocalStatus(true, "EMAIL", mockAction);
+        setIsDetailOpen(false);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to send email.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while sending the email.");
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const handleWaClick = async () => {
+    if (!selectedMessage) return;
+    try {
+      const result = await recordWhatsAppClick(selectedMessage.id, bookingNotes);
+      if (result.success) {
+        if (!selectedMessage.read) {
+          await markMessageAsRead(selectedMessage.id, true);
+        }
+
+        const mockAction: MessageAction = {
+          id: Math.random().toString(),
+          type: "WHATSAPP",
+          details: bookingNotes,
+          adminEmail: "You",
+          createdAt: new Date(),
+        };
+
+        updateLocalStatus(true, "WHATSAPP", mockAction);
+        setIsDetailOpen(false);
+        router.refresh();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleOpenMessage = async (msg: Message) => {
     setSelectedMessage(msg);
@@ -180,32 +337,68 @@ export default function MessagesClient({ initialMessages }: MessagesClientProps)
       accessorKey: "name",
       sortable: true,
       cell: (row) => (
-        <button
-          onClick={() => handleOpenMessage(row)}
-          className={cn(
-            "text-left hover:underline focus:outline-none font-bold",
-            row.read ? "text-sage-800 font-medium" : "text-sage-950 font-extrabold"
+        <div className="flex flex-col gap-0.5">
+          <button
+            onClick={() => handleOpenMessage(row)}
+            className={cn(
+              "text-left hover:underline focus:outline-none font-bold",
+              row.read ? "text-sage-800 font-medium" : "text-sage-950 font-extrabold"
+            )}
+          >
+            {row.name}
+          </button>
+          {row.replied && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {row.actions && row.actions.length > 0 ? (
+                Array.from(new Set(row.actions.map(a => a.type.replace("MANUAL_RESOLVE_", "")))).map(type => (
+                  <span key={type} className={cn(
+                    "inline-flex items-center gap-0.5 text-[8px] font-bold uppercase tracking-wider w-max px-1.5 py-0.5 rounded-md",
+                    type === "EMAIL"
+                      ? "bg-sky-50 text-sky-700 border border-sky-100"
+                      : type === "WHATSAPP"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "bg-sage-50 text-sage-700 border border-sage-100"
+                  )}>
+                    {type === "EMAIL" ? "📧 Email" : type === "WHATSAPP" ? "💬 WhatsApp" : "✅ Resolved"}
+                  </span>
+                ))
+              ) : row.replyMethod ? (
+                <span className={cn(
+                  "inline-flex items-center gap-0.5 text-[8px] font-bold uppercase tracking-wider w-max px-1.5 py-0.5 rounded-md",
+                  row.replyMethod === "EMAIL"
+                    ? "bg-sky-50 text-sky-700 border border-sky-100"
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                )}>
+                  {row.replyMethod === "EMAIL" ? "📧 Email" : "💬 WhatsApp"}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-0.5 text-[8px] font-bold uppercase tracking-wider w-max px-1.5 py-0.5 rounded-md bg-sage-50 text-sage-700 border border-sage-100">
+                  ✅ Resolved
+                </span>
+              )}
+            </div>
           )}
-        >
-          {row.name}
-        </button>
+        </div>
       ),
     },
     {
       header: "Email",
       accessorKey: "email",
       sortable: true,
+      className: "hidden md:table-cell",
       cell: (row) => <span className="font-light text-sage-600">{row.email}</span>,
     },
     {
       header: "Phone",
       accessorKey: "phone",
+      className: "hidden lg:table-cell",
       cell: (row) => <span className="font-light text-sage-600">{row.phone}</span>,
     },
     {
       header: "Submitted",
       accessorKey: "createdAt",
       sortable: true,
+      className: "hidden sm:table-cell",
       cell: (row) => (
         <span className="text-xs text-sage-500 font-light">
           {formatDateTime(row.createdAt)}
@@ -240,21 +433,49 @@ export default function MessagesClient({ initialMessages }: MessagesClientProps)
   return (
     <div className="space-y-6">
       {/* Header Info */}
-      <div>
-        <h1 className="font-serif font-bold text-3xl text-sage-950 tracking-wide">Client Queries</h1>
-        <p className="text-sm text-sage-600 font-light mt-1">
-          Review, sort, read, and manage all contact form inquiries submitted by website visitors.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-serif font-bold text-3xl text-sage-950 tracking-wide">Client Queries</h1>
+          <p className="text-sm text-sage-600 font-light mt-1">
+            Review, sort, read, and manage all contact form inquiries submitted by visitors.
+          </p>
+        </div>
+      </div>
+
+      {/* Tab Categories Switcher */}
+      <div className="flex border-b border-sage-100 gap-6">
+        <button
+          onClick={() => setActiveTab("pending")}
+          className={cn(
+            "pb-3 text-xs md:text-sm font-semibold tracking-wider uppercase border-b-2 transition-all relative focus:outline-none",
+            activeTab === "pending"
+              ? "border-gold-500 text-sage-950 font-bold"
+              : "border-transparent text-sage-400 hover:text-sage-700"
+          )}
+        >
+          No Action Done ({messages.filter((m) => !m.replied).length})
+        </button>
+        <button
+          onClick={() => setActiveTab("resolved")}
+          className={cn(
+            "pb-3 text-xs md:text-sm font-semibold tracking-wider uppercase border-b-2 transition-all relative focus:outline-none",
+            activeTab === "resolved"
+              ? "border-gold-500 text-sage-950 font-bold"
+              : "border-transparent text-sage-400 hover:text-sage-700"
+          )}
+        >
+          Action Done ({messages.filter((m) => m.replied).length})
+        </button>
       </div>
 
       {/* Main Table view */}
       <DataTable
         columns={columns}
-        data={messages}
+        data={messages.filter((m) => activeTab === "resolved" ? m.replied : !m.replied)}
         searchKey="name"
         searchPlaceholder="Search by sender name..."
         isLoading={isLoading}
-        emptyStateText="No client queries found in your inbox."
+        emptyStateText={activeTab === "resolved" ? "No resolved queries found." : "No pending queries found."}
         bulkActionTrigger={(selectedRows) => (
           <Button
             variant="outline"
@@ -274,12 +495,87 @@ export default function MessagesClient({ initialMessages }: MessagesClientProps)
       <Modal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} size="md">
         {selectedMessage && (
           <div className="space-y-6">
-            {/* Header */}
-            <div>
-              <span className="text-[10px] font-bold text-sage-500 uppercase tracking-widest block mb-1">
-                Query Details
-              </span>
-              <h3 className="font-serif font-bold text-2xl text-sage-950">{selectedMessage.name}</h3>
+            {/* Header with resolve state switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-sage-100 pb-3 gap-3">
+              <div>
+                <span className="text-[10px] font-bold text-sage-500 uppercase tracking-widest block mb-1">
+                  Query Details
+                </span>
+                <h3 className="font-serif font-bold text-2xl text-sage-950">{selectedMessage.name}</h3>
+              </div>
+              
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-[9px] text-sage-400 font-bold uppercase tracking-wider mr-1">Status:</span>
+                <button
+                  onClick={async () => {
+                    const result = await toggleMessageReplied(selectedMessage.id, true, "EMAIL", "Marked resolved via Email (manual)");
+                    if (result.success) {
+                      const mockAction: MessageAction = {
+                        id: Math.random().toString(),
+                        type: "MANUAL_RESOLVE_EMAIL",
+                        details: "Marked resolved via Email (manual)",
+                        adminEmail: "You",
+                        createdAt: new Date(),
+                      };
+                      updateLocalStatus(true, "EMAIL", mockAction);
+                      toast.success("Query resolved via Email");
+                    }
+                  }}
+                  className={cn(
+                    "px-2 py-1 rounded-lg border text-[9px] font-bold uppercase tracking-wider transition-all",
+                    selectedMessage.replied && selectedMessage.replyMethod === "EMAIL"
+                      ? "bg-sky-50 border-sky-200 text-sky-700 font-bold"
+                      : "bg-white border-sage-200 text-sage-600 hover:bg-sage-50"
+                  )}
+                >
+                  📧 Email
+                </button>
+                <button
+                  onClick={async () => {
+                    const result = await toggleMessageReplied(selectedMessage.id, true, "WHATSAPP", "Marked resolved via WhatsApp (manual)");
+                    if (result.success) {
+                      const mockAction: MessageAction = {
+                        id: Math.random().toString(),
+                        type: "MANUAL_RESOLVE_WHATSAPP",
+                        details: "Marked resolved via WhatsApp (manual)",
+                        adminEmail: "You",
+                        createdAt: new Date(),
+                      };
+                      updateLocalStatus(true, "WHATSAPP", mockAction);
+                      toast.success("Query resolved via WhatsApp");
+                    }
+                  }}
+                  className={cn(
+                    "px-2 py-1 rounded-lg border text-[9px] font-bold uppercase tracking-wider transition-all",
+                    selectedMessage.replied && selectedMessage.replyMethod === "WHATSAPP"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold"
+                      : "bg-white border-sage-200 text-sage-600 hover:bg-sage-50"
+                  )}
+                >
+                  💬 WhatsApp
+                </button>
+                {selectedMessage.replied && (
+                  <button
+                    onClick={async () => {
+                      const result = await toggleMessageReplied(selectedMessage.id, false, null, "Status reset to pending");
+                      if (result.success) {
+                        const mockAction: MessageAction = {
+                          id: Math.random().toString(),
+                          type: "MANUAL_PENDING",
+                          details: "Status reset to pending",
+                          adminEmail: "You",
+                          createdAt: new Date(),
+                        };
+                        updateLocalStatus(false, null, mockAction);
+                        toast.success("Reset query status to Pending");
+                      }
+                    }}
+                    className="px-2 py-1 rounded-lg border border-red-200 text-red-650 hover:bg-red-50 text-[9px] font-bold uppercase tracking-wider transition-all"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Info Cards */}
@@ -374,7 +670,7 @@ export default function MessagesClient({ initialMessages }: MessagesClientProps)
               </div>
 
               {/* Action Buttons inside Scheduler */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
                 {/* Copy to Clipboard */}
                 <button
                   type="button"
@@ -387,31 +683,95 @@ export default function MessagesClient({ initialMessages }: MessagesClientProps)
                   <span>📋</span>
                   <span>Copy Reply Message</span>
                 </button>
+
+                {!isDateTimeProvided && (
+                  <span className="text-[10px] text-amber-650 font-semibold flex items-center gap-1 animate-pulse">
+                    ⚠️ Select Date & Time to send
+                  </span>
+                )}
               </div>
+            </div>
+
+            {/* Timeline Action History */}
+            <div className="space-y-3 pt-1">
+              <label className="text-[9px] uppercase tracking-wider text-sage-400 font-bold block">
+                Action History / Timeline ({selectedMessage.actions?.length || 0})
+              </label>
+              {selectedMessage.actions && selectedMessage.actions.length > 0 ? (
+                <div className="space-y-4 pl-3 border-l border-sage-100 ml-1 max-h-48 overflow-y-auto pr-1">
+                  {selectedMessage.actions.map((act) => (
+                    <div key={act.id} className="relative flex flex-col text-xs">
+                      {/* Timeline dot */}
+                      <span className="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-sage-400 border border-white" />
+                      
+                      <div className="min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-sage-900">
+                            {act.type === "EMAIL" && "📧 Sent reply via Email"}
+                            {act.type === "WHATSAPP" && "💬 Opened WhatsApp chat link"}
+                            {act.type === "MANUAL_RESOLVE_EMAIL" && "✅ Resolved via Email (manual)"}
+                            {act.type === "MANUAL_RESOLVE_WHATSAPP" && "✅ Resolved via WhatsApp (manual)"}
+                            {act.type === "MANUAL_PENDING" && "⏳ Reset status to Pending"}
+                          </p>
+                          <span className="text-[10px] text-sage-400 font-light shrink-0">
+                            {new Date(act.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-sage-400 font-medium mt-0.5">by {act.adminEmail}</p>
+                        {act.details && (
+                          <div className="mt-1 p-2 rounded-lg bg-sage-50 text-[10px] text-sage-600 border border-sage-100 max-h-24 overflow-y-auto whitespace-pre-wrap leading-normal font-light">
+                            {act.details}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-sage-400 italic">No actions recorded on this query yet.</p>
+              )}
             </div>
 
             {/* Footer Buttons */}
             <div className="flex items-center gap-3 pt-2">
-              <Link
-                href={`mailto:${selectedMessage.email}?subject=Booking Confirmation - Yogabhyasi&body=${encodeURIComponent(bookingNotes)}`}
-                className="flex-grow"
+              <Button
+                variant="primary"
+                onClick={handleSendEmail}
+                disabled={isSendingEmail || !isDateTimeProvided}
+                className="flex-grow rounded-xl flex items-center gap-2 justify-center py-2.5"
               >
-                <Button variant="primary" fullWidth className="rounded-xl flex items-center gap-2 justify-center py-2.5">
-                  <Mail className="h-4 w-4" />
-                  <span>Send Email</span>
-                </Button>
-              </Link>
+                {isSendingEmail ? (
+                  <div className="h-4 w-4 border-2 border-sand-50 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4" />
+                    <span>Send Email</span>
+                  </>
+                )}
+              </Button>
               
-              <Link
-                href={`https://wa.me/${(selectedMessage.whatsapp || selectedMessage.phone || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(bookingNotes)}`}
-                target="_blank"
-                className="flex-grow"
-              >
-                <Button variant="outline" fullWidth className="rounded-xl flex items-center gap-2 justify-center py-2.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
+              {!isDateTimeProvided ? (
+                <Button
+                  variant="outline"
+                  disabled
+                  className="flex-grow rounded-xl flex items-center gap-2 justify-center py-2.5 border-sage-200 text-sage-400 bg-sage-50/50 cursor-not-allowed opacity-50"
+                >
                   <span className="text-sm">💬</span>
                   <span>Send WhatsApp</span>
                 </Button>
-              </Link>
+              ) : (
+                <Link
+                  href={`https://wa.me/${(selectedMessage.whatsapp || selectedMessage.phone || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(bookingNotes)}`}
+                  target="_blank"
+                  onClick={handleWaClick}
+                  className="flex-grow"
+                >
+                  <Button variant="outline" fullWidth className="rounded-xl flex items-center gap-2 justify-center py-2.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
+                    <span className="text-sm">💬</span>
+                    <span>Send WhatsApp</span>
+                  </Button>
+                </Link>
+              )}
 
               <Button
                 variant="outline"

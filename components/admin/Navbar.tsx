@@ -99,7 +99,7 @@ export default function Navbar({ onMenuClick, adminEmail, adminUsername }: Navba
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2.5 w-80 bg-white border border-sage-100 rounded-2xl shadow-xl z-20 overflow-hidden"
+                  className="fixed top-16 right-4 left-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:w-80 bg-white border border-sage-100 rounded-2xl shadow-xl z-20 overflow-hidden"
                 >
                   <div className="px-4 py-3 bg-sage-50 border-b border-sage-100">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-sage-800">Notifications</h4>

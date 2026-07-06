@@ -58,10 +58,9 @@ export default function ConfirmDialog({
         <div className="flex items-center gap-3 w-full">
           <Button
             variant="outline"
-            fullWidth
             onClick={onClose}
             disabled={isLoading || isSubmitting}
-            className="rounded-xl"
+            className="flex-1 rounded-xl py-3"
           >
             {cancelText}
           </Button>

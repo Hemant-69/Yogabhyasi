@@ -28,7 +28,8 @@ export function FloatingCTA() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const { phoneRaw, phone } = siteContent.contact.info;
+  const phoneRaw = "7300634908";
+  const phone = "73006 34908";
 
   const {
     register,
@@ -88,7 +89,7 @@ export function FloatingCTA() {
     if (!waMessage.trim()) return;
 
     // Filter raw phone to digits only for wa.me compatibility
-    const cleanPhone = phoneRaw.replace(/[^0-9]/g, "");
+    const cleanPhone = "919717996507";
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}`;
     
     window.open(waUrl, "_blank", "noopener,noreferrer");
@@ -188,7 +189,6 @@ export function FloatingCTA() {
             </span>
           )}
         </motion.button>
-
         {/* Call Now Button */}
         <motion.a
           href={`tel:${phoneRaw}`}

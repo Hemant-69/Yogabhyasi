@@ -14,6 +14,9 @@ export async function sendEmailNotification(message: {
     SMTP_PASSWORD,
     SMTP_FROM,
     ADMIN_NOTIFICATION_EMAIL,
+    ADMIN_ROUTE_PATH,
+    NEXTAUTH_URL,
+    NEXT_PUBLIC_APP_URL,
   } = process.env;
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD || !ADMIN_NOTIFICATION_EMAIL) {
@@ -22,9 +25,9 @@ export async function sendEmailNotification(message: {
   }
 
   try {
-    const emailReplyBody = `Hi ${message.name},\n\nThank you for reaching out to Yogabhyasi!\n\nWe would love to schedule your free trial session. Please let us know your preferred date and time so we can book your slot.\n\nWarm regards,\nYogabhyasi Team`;
-    const whatsappReplyBody = `Hi ${message.name}, thank you for booking a trial class at Yogabhyasi. Please reply with your preferred date and time. Here is a short video intro to our shala: https://yogabhyasi.com/gallery`;
-    const cleanWaNumber = (message.whatsapp || message.phone || "").replace(/[^0-9]/g, "");
+    const adminPath = ADMIN_ROUTE_PATH || "dashboard-x7k92m-admin";
+    const baseUrl = NEXT_PUBLIC_APP_URL || NEXTAUTH_URL || "https://yogabhyasi.com";
+    const actionLink = `${baseUrl}/${adminPath}/messages`;
 
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
@@ -39,7 +42,7 @@ export async function sendEmailNotification(message: {
     const mailOptions = {
       from: SMTP_FROM || SMTP_USER,
       to: ADMIN_NOTIFICATION_EMAIL,
-      replyTo: message.email, // Allows direct reply to the client
+      replyTo: message.email,
       subject: `New Inquiry from ${message.name} - Yogabhyasi`,
       text: `
 New wellness inquiry received on Yogabhyasi.
@@ -53,7 +56,8 @@ Inquiry Message:
 ${message.message}
 
 ---
-You can reply directly to this email to contact ${message.name}.
+To reply and take action on this inquiry, please visit the admin dashboard:
+${actionLink}
 `,
       html: `
 <div style="font-family: sans-serif; max-width: 600px; color: #1e293b; line-height: 1.6; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #fcfbf9;">
@@ -84,19 +88,11 @@ You can reply directly to this email to contact ${message.name}.
   </div>
 
   <div style="margin: 25px 0 15px 0; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
-    <a href="mailto:${message.email}?subject=Booking%20Confirmation%20-%20Yogabhyasi&body=${encodeURIComponent(emailReplyBody)}" 
-       style="display: inline-block; background-color: #6d6239; color: #fdfcf7; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; margin-right: 12px; font-family: sans-serif;">
-       📧 Reply via Email
-    </a>
-    <a href="https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(whatsappReplyBody)}" 
-       style="display: inline-block; background-color: #059669; color: #ffffff; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; font-family: sans-serif;">
-       💬 Reply via WhatsApp
+    <a href="${actionLink}" 
+       style="display: inline-block; background-color: #1b4332; color: #ffffff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; font-family: sans-serif; letter-spacing: 0.5px;">
+       ➡️ Take Action in Admin Panel
     </a>
   </div>
-  
-  <p style="font-size: 11px; color: #64748b; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px; text-align: center;">
-    Tip: You can hit <strong>Reply</strong> in your email client to send a message directly to ${message.name}.
-  </p>
 </div>
 `,
     };
@@ -115,7 +111,13 @@ export async function sendTelegramNotification(message: {
   whatsapp?: string | null;
   message: string;
 }) {
-  const { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
+  const {
+    TELEGRAM_BOT_TOKEN,
+    TELEGRAM_CHAT_ID,
+    ADMIN_ROUTE_PATH,
+    NEXTAUTH_URL,
+    NEXT_PUBLIC_APP_URL,
+  } = process.env;
 
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
     console.warn("Telegram configuration missing. Skipping Telegram notification.");
@@ -123,11 +125,11 @@ export async function sendTelegramNotification(message: {
   }
 
   try {
-    const emailReplyBody = `Hi ${message.name},\n\nThank you for reaching out to Yogabhyasi!\n\nWe would love to schedule your free trial session. Please let us know your preferred date and time so we can book your slot.\n\nWarm regards,\nYogabhyasi Team`;
-    const whatsappReplyBody = `Hi ${message.name}, thank you for booking a trial class at Yogabhyasi. Please reply with your preferred date and time. Here is a short video intro to our shala: https://yogabhyasi.com/gallery`;
-    const cleanWaNumber = (message.whatsapp || message.phone || "").replace(/[^0-9]/g, "");
+    const adminPath = ADMIN_ROUTE_PATH || "dashboard-x7k92m-admin";
+    const baseUrl = NEXT_PUBLIC_APP_URL || NEXTAUTH_URL || "https://yogabhyasi.com";
+    const actionLink = `${baseUrl}/${adminPath}/messages`;
 
-    const text = `🧘 *New Inquiry - Yogabhyasi* 🧘\n\n👤 *Name:* ${message.name}\n✉️ *Email:* ${message.email}\n📞 *Phone:* ${message.phone}\n📱 *WhatsApp:* ${message.whatsapp || "Not provided"}\n\n💬 *Message:*\n"${message.message}"\n\n---\n📧 *Quick Action:* [Draft Booking Email](mailto:${message.email}?subject=Booking%20Confirmation%20-%20Yogabhyasi&body=${encodeURIComponent(emailReplyBody)})`;
+    const text = `🧘 *New Inquiry - Yogabhyasi* 🧘\n\n👤 *Name:* ${message.name}\n✉️ *Email:* ${message.email}\n📞 *Phone:* ${message.phone}\n📱 *WhatsApp:* ${message.whatsapp || "Not provided"}\n\n💬 *Message:*\n"${message.message}"\n\n---\n➡️ *Take Action:* [Open Admin Panel](${actionLink})`;
 
     const response = await fetch(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -138,16 +140,6 @@ export async function sendTelegramNotification(message: {
           chat_id: TELEGRAM_CHAT_ID,
           text: text,
           parse_mode: "Markdown",
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: "💬 Send WhatsApp",
-                  url: `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(whatsappReplyBody)}`,
-                },
-              ],
-            ],
-          },
         }),
       }
     );
@@ -161,4 +153,46 @@ export async function sendTelegramNotification(message: {
   } catch (error) {
     console.error("Failed to send Telegram notification:", error);
   }
+}
+
+export async function sendDirectReplyEmail({
+  to,
+  subject,
+  body,
+}: {
+  to: string;
+  subject: string;
+  body: string;
+}) {
+  const {
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_USER,
+    SMTP_PASSWORD,
+    SMTP_FROM,
+  } = process.env;
+
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+    throw new Error("SMTP credentials are not configured in your environment.");
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT) || 587,
+    secure: SMTP_PORT === "465",
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: SMTP_FROM || SMTP_USER,
+    to: to,
+    subject: subject,
+    text: body,
+    html: `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; white-space: pre-wrap;">${body}</div>`,
+  };
+
+  await transporter.sendMail(mailOptions);
 }

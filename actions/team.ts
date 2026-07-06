@@ -14,9 +14,6 @@ const teamMemberSchema = z.object({
   objectPosition: z.string().default("center"),
   transform: z.string().nullable().optional(),
   transformHover: z.string().nullable().optional(),
-  instagram: z.string().url("Invalid Instagram URL").or(z.literal("")).nullable().optional(),
-  twitter: z.string().url("Invalid Twitter URL").or(z.literal("")).nullable().optional(),
-  linkedin: z.string().url("Invalid LinkedIn URL").or(z.literal("")).nullable().optional(),
   displayOrder: z.number().default(0),
   status: z.boolean().default(true),
 });
@@ -44,9 +41,6 @@ export async function createTeamMember(data: z.infer<typeof teamMemberSchema>) {
         objectPosition: parsed.objectPosition,
         transform: parsed.transform || null,
         transformHover: parsed.transformHover || null,
-        instagram: parsed.instagram || null,
-        twitter: parsed.twitter || null,
-        linkedin: parsed.linkedin || null,
         displayOrder: parsed.displayOrder,
         status: parsed.status,
       },
@@ -76,9 +70,6 @@ export async function updateTeamMember(id: string, data: z.infer<typeof teamMemb
         objectPosition: parsed.objectPosition,
         transform: parsed.transform || null,
         transformHover: parsed.transformHover || null,
-        instagram: parsed.instagram || null,
-        twitter: parsed.twitter || null,
-        linkedin: parsed.linkedin || null,
         displayOrder: parsed.displayOrder,
         status: parsed.status,
       },
@@ -127,5 +118,28 @@ export async function toggleTeamMemberStatus(id: string, currentStatus: boolean)
   } catch (error: any) {
     console.error("Toggle team member status error:", error);
     return { success: false, error: error.message || "Failed to toggle team member status." };
+  }
+}
+
+export async function reorderTeam(orderedIds: string[]) {
+  try {
+    const user = await checkAuth();
+
+    // Perform database updates in a transaction
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.teamMember.update({
+          where: { id },
+          data: { displayOrder: index },
+        })
+      )
+    );
+
+    await logActivity("Reorder Team", user.email!, "Reordered team members display listing.");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Reorder team error:", error);
+    return { success: false, error: error.message || "Failed to reorder team members." };
   }
 }
