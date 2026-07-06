@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { usePathname } from "next/navigation";
 import { siteContent } from "@/lib/content";
 
 // Validation schema for the compact Free Trial landing Modal
@@ -22,6 +23,7 @@ const trialFormSchema = z.object({
 type TrialFormData = z.infer<typeof trialFormSchema>;
 
 export function FloatingCTA() {
+  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [waMessage, setWaMessage] = useState("");
@@ -46,13 +48,15 @@ export function FloatingCTA() {
     },
   });
 
-  // Automatically trigger the overlay free trial contact modal on landing
+  // Automatically trigger the overlay free trial contact modal on landing (only on home page)
   useEffect(() => {
+    if (pathname !== "/") return;
+
     const timer = setTimeout(() => {
       setIsModalOpen(true);
     }, 1500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [pathname]);
 
   const onSubmitTrial = async (data: TrialFormData) => {
     setIsSubmitting(true);

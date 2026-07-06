@@ -41,7 +41,11 @@ export function Header() {
   // Track active section for nav highlighting (only on home page)
   useEffect(() => {
     if (isStaticNav) {
-      setActiveSection("gallery"); // Highlight Gallery link when on gallery subpage
+      if (pathname === "/gallery") {
+        setActiveSection("gallery");
+      } else {
+        setActiveSection("");
+      }
       return;
     }
 
